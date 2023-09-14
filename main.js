@@ -102,6 +102,14 @@ document.addEventListener("keydown", async (e) => {
 	}
 });
 
+document.addEventListener("click", async (e) => {
+	duck.position.y += 0.5 * cubeSize;
+	duckling.position.y += 1.0 * cubeSize;
+	await new Promise(resolve => setTimeout(resolve, 200));
+	duck.position.y = 0;
+	duckling.position.y = 0;
+});
+
 
 //--- MAIN LOOP ---///
 function animate() {
