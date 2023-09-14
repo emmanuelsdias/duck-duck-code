@@ -6,15 +6,17 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 //--- RENDERER ---///
 const renderer = new THREE.WebGLRenderer( { antialias: true });
 renderer.setSize( window.innerWidth, window.innerHeight );
-renderer.setPixelRatio(devicePixelRatio); // Makes mobile aspect ratio weird
+// renderer.setPixelRatio(devicePixelRatio); // Makes mobile aspect ratio weird
 document.body.appendChild( renderer.domElement );
 
 
 //--- CAMERA ---///
-const d = 2;
+const d = 3;
+let WIDTH = window.innerWidth;
+let HEIGHT = window.innerHeight;
 const camera = new THREE.OrthographicCamera( 
-	- d * window.innerWidth / window.innerHeight, 
-	+ d * window.innerWidth / window.innerHeight, 
+	- d * WIDTH / HEIGHT, 
+	+ d * WIDTH / HEIGHT, 
 	+ d, 
 	- d, 
 	1, 
@@ -22,6 +24,23 @@ const camera = new THREE.OrthographicCamera(
 );
 camera.position.set( d, d, d );
 camera.lookAt( 0, 0, 0 );
+
+window.addEventListener( 'resize', onWindowResize );
+
+function onWindowResize() {
+	WIDTH = window.innerWidth;
+	HEIGHT = window.innerHeight;
+	
+	renderer.setSize( WIDTH, HEIGHT );
+	
+	camera.left   = - d * WIDTH / HEIGHT;
+  camera.right  = + d * WIDTH / HEIGHT;
+  camera.top    = + d;
+  camera.bottom = - d;
+
+	camera.updateProjectionMatrix();
+}
+onWindowResize();
 
 
 //--- SCENE ---///
@@ -44,31 +63,34 @@ const loader = new GLTFLoader();
 const duckFamily = new THREE.Group();
 scene.add( duckFamily );
 
-let duck;
+// Duck
+let duck = new THREE.Object3D();
+duckFamily.add( duck );
 loader.load( './assets/models/gltf/duck.gltf', (gltf) => { 
-	duck = gltf.scene;
-	duckFamily.add( duck );
+	duck.copy(gltf.scene);
 } );
 
-let duckling;
+// Duckling
+const ducklingHeight = 0.24;
+
+function addDuckling() {
+	const newDuckling = duckling.clone();
+	newDuckling.position.y = ducklingHeight * (duckFamily.children.length - 1);
+	duckFamily.add(newDuckling);
+}
+
+let duckling = new THREE.Object3D();
 loader.load('./assets/models/gltf/duckling.gltf', (gltf) => {
-	duckling = gltf.scene;
-	duckFamily.add( duckling );
+	duckling.copy(gltf.scene);
+	addDuckling();
 } );
 
+// Cube
 let cube;
 loader.load('./assets/models/gltf/cube.gltf', (gltf) => {
 	cube = gltf.scene;
 	scene.add( cube );
 } );
-
-
-//--- LISTENERS ---//
-window.addEventListener('resize', () => {
-	camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix(); // Not working, not sure why
-  renderer.setSize(window.innerWidth, window.innerHeight);
-}, false);
 
 
 //--- MOVEMENT ---///
@@ -85,6 +107,7 @@ function rotateRight() {
 }
 
 function moveForward() {
+	jump();
 	duck.getWorldDirection(movement);
 	movement.applyMatrix3(rotateZtoX);
 	movement.multiplyScalar(cubeSize);
@@ -99,11 +122,21 @@ function moveBackward() {
 }
 
 async function jump() {
-	duck.position.y += 0.5 * cubeSize;
-	duckling.position.y += 0.8 * cubeSize;
+	let counter = 1;
+	duckFamily.traverse((child) => {
+		if (child.name === 'Duck' || child.name === 'Duckie') {
+			child.position.y += (0.3 + 0.05 * counter) * cubeSize;
+			counter++;
+		}
+	});
 	await new Promise(resolve => setTimeout(resolve, 200));
-	duck.position.y = 0;
-	duckling.position.y = 0;
+	counter = 1;
+	duckFamily.traverse((child) => {
+		if (child.name === 'Duck' || child.name === 'Duckie') {
+			child.position.y -= (0.3 + 0.05 * counter) * cubeSize;
+			counter++;
+		}
+	});
 }
 
 document.addEventListener("keydown", async (e) => {
@@ -118,6 +151,8 @@ document.addEventListener("keydown", async (e) => {
 		rotateRight();
 	} else if (key == 'Space') {
 		jump();
+	} else if (key == 'KeyN') {
+		addDuckling();
 	}
 }, false);
 
@@ -128,7 +163,7 @@ let gesture;
 let startX, startY;
 let distX, distY;
 let threshold = 100;
-let restraint = 50; 
+let restraint = 100; 
 let swipeTimeLimit = 300; 
 let touchTimeLimit = 150; 
 let elapsedTime;
