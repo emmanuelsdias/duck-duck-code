@@ -6,6 +6,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 //--- RENDERER ---///
 const renderer = new THREE.WebGLRenderer( { antialias: true });
 renderer.setSize( window.innerWidth, window.innerHeight );
+// renderer.setPixelRatio(devicePixelRatio); // Makes mobile aspect ratio weird
 document.body.appendChild( renderer.domElement );
 
 
@@ -26,13 +27,14 @@ camera.lookAt( 0, 0, 0 );
 
 //--- SCENE ---///
 const scene = new THREE.Scene();
+scene.background = new THREE.Color( 0x95FCFF );
 
 
 //--- LIGHTS ---///
-const ambientLight = new THREE.AmbientLight( 0x404040, 10 ); 
+const ambientLight = new THREE.AmbientLight( 0xCCFDFF, 2 ); 
 scene.add( ambientLight );
 
-const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
+const directionalLight = new THREE.DirectionalLight( 0xFFFFFF, 1 );
 directionalLight.position.set( 1, 2, 0 );
 scene.add( directionalLight );
 
@@ -44,19 +46,19 @@ const duckFamily = new THREE.Group();
 scene.add( duckFamily );
 
 let duck;
-loader.load( 'models/gltf/duck.gltf', (gltf) => { 
+loader.load( './models/gltf/duck.gltf', (gltf) => { 
 	duck = gltf.scene;
 	duckFamily.add( duck );
 } );
 
 let duckling;
-loader.load('models/gltf/duckling.gltf', (gltf) => {
+loader.load('./models/gltf/duckling.gltf', (gltf) => {
 	duckling = gltf.scene;
 	duckFamily.add( duckling );
 } );
 
 let cube;
-loader.load('models/gltf/cube.gltf', (gltf) => {
+loader.load('./models/gltf/cube.gltf', (gltf) => {
 	cube = gltf.scene;
 	scene.add( cube );
 } );
@@ -73,7 +75,7 @@ window.addEventListener('resize', () => {
 //--- MOVEMENT ---///
 const cubeSize = 0.8;
 const movement = new THREE.Vector3();
-const rotateZtoX = new THREE.Matrix3(0,0,1,0,1,0,-1,0,0);
+const rotateZtoX = new THREE.Matrix3(0, 0, 1, 0, 1, 0, -1, 0, 0);
 
 document.addEventListener("keydown", async (e) => {
 	var key = e.code;
@@ -92,8 +94,8 @@ document.addEventListener("keydown", async (e) => {
 	} else if (key == 'ArrowRight' || key == 'KeyD') {
 		duckFamily.rotation.y -= Math.PI / 2;
 	} else if (key == 'Space') {
-		duck.position.y += cubeSize;
-		duckling.position.y += cubeSize + 0.5;
+		duck.position.y += 0.5 * cubeSize;
+		duckling.position.y += 1.0 * cubeSize;
 		await new Promise(resolve => setTimeout(resolve, 200));
 		duck.position.y = 0;
 		duckling.position.y = 0;
