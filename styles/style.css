@@ -7,6 +7,12 @@ body { margin: 0; }
   touch-action: manipulation;     /* Others */
 }
 
+/* Disable pinch zoom */
+html {
+  touch-action: pan-x pan-y;
+  height: 100% 
+}
+
 /* Disable reloading when over-scrolling */
 html, body {  
   overscroll-behavior: none;
