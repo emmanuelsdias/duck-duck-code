@@ -1,0 +1,13 @@
+body { margin: 0; }
+
+/* MOBILE COMPATIBILITY */
+/* Disable double-tap to zoom */
+* {
+  -ms-touch-action: manipulation; /* IE 10 */
+  touch-action: manipulation;     /* Others */
+}
+
+/* Disable reloading when over-scrolling */
+html, body {  
+  overscroll-behavior: none;
+}
