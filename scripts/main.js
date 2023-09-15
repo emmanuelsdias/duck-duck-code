@@ -126,7 +126,12 @@ async function jump() {
 	});
 }
 
+let recentMovement = false;
+
 document.addEventListener("keydown", async (e) => {
+	if (recentMovement) {
+		return;
+	}	
 	var key = e.code;
 	if (key == 'ArrowUp' || key == 'KeyW') { 
 		moveForward();
@@ -141,6 +146,10 @@ document.addEventListener("keydown", async (e) => {
 	} else if (key == 'KeyN') {
 		rescueDuckling();
 	}
+
+	recentMovement = true;
+	await new Promise(resolve => setTimeout(resolve, 200));
+	recentMovement = false;
 }, false);
 
 
@@ -156,7 +165,13 @@ let touchTimeLimit = 150;
 let elapsedTime;
 let startTime;
 
+let recentGesture = false;
+
 async function handleGesture(direction) {
+	if (recentGesture) {
+		return;
+	}
+	elapsedTime = new Date().getTime() - startTime
 	if (direction === 'left') {
 		rotateLeft();
 	} else if (direction === 'right') {
@@ -168,6 +183,9 @@ async function handleGesture(direction) {
 	} else if (direction === 'jump') {
 		jump();
 	}
+	recentGesture = true;
+	await new Promise(resolve => setTimeout(resolve, 100));
+	recentGesture = false;
 }
 
 document.addEventListener('touchstart', (e) => {
