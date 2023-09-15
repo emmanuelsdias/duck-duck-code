@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import WebGL from 'three/addons/capabilities/WebGL.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-
+import { puzzles } from './puzzles.js';
 
 //--- RENDERER ---///
 const renderer = new THREE.WebGLRenderer( { antialias: true });
@@ -11,7 +11,7 @@ document.body.appendChild( renderer.domElement );
 
 
 //--- CAMERA ---///
-const d = 3;
+const d = 4;
 let WIDTH = window.innerWidth;
 let HEIGHT = window.innerHeight;
 const camera = new THREE.OrthographicCamera( 
@@ -45,14 +45,14 @@ onWindowResize();
 
 //--- SCENE ---///
 const scene = new THREE.Scene();
-scene.background = new THREE.Color( 0x95FCFF );
+scene.background = new THREE.Color( 0x98eade );
 
 
 //--- LIGHTS ---///
-const ambientLight = new THREE.AmbientLight( 0xCCFDFF, 2 ); 
+const ambientLight = new THREE.AmbientLight( 0xCCFDFF, 1.0 ); 
 scene.add( ambientLight );
 
-const directionalLight = new THREE.DirectionalLight( 0xFFFFFF, 1 );
+const directionalLight = new THREE.DirectionalLight( 0xFFFFFF, 1.5 );
 directionalLight.position.set( 1, 2, 0 );
 scene.add( directionalLight );
 
@@ -60,37 +60,23 @@ scene.add( directionalLight );
 //--- OBJECT MODELS ---///
 const loader = new GLTFLoader();
 
-const duckFamily = new THREE.Group();
+let duckFamily = new THREE.Group();
 scene.add( duckFamily );
 
 // Duck
-let duck = new THREE.Object3D();
-duckFamily.add( duck );
+let duck;
 loader.load( './assets/models/gltf/duck.gltf', (gltf) => { 
-	duck.copy(gltf.scene);
+	duck = gltf.scene;
+	const tempDuck = new THREE.Object3D();
+	tempDuck.copy( duck );
+	duckFamily.add( tempDuck );
 } );
 
 // Duckling
-const ducklingHeight = 0.24;
-
-function addDuckling() {
-	const newDuckling = duckling.clone();
-	newDuckling.position.y = ducklingHeight * (duckFamily.children.length - 1);
-	duckFamily.add(newDuckling);
-}
-
-let duckling = new THREE.Object3D();
+let duckling;
 loader.load('./assets/models/gltf/duckling.gltf', (gltf) => {
-	duckling.copy(gltf.scene);
-	addDuckling();
-} );
-
-// Cube
-let cube;
-loader.load('./assets/models/gltf/cube.gltf', (gltf) => {
-	cube = gltf.scene;
-	scene.add( cube );
-} );
+	duckling = gltf.scene;
+});
 
 
 //--- MOVEMENT ---///
@@ -108,14 +94,15 @@ function rotateRight() {
 
 function moveForward() {
 	jump();
-	duck.getWorldDirection(movement);
+	duckFamily.children[0].getWorldDirection(movement);
 	movement.applyMatrix3(rotateZtoX);
 	movement.multiplyScalar(cubeSize);
 	duckFamily.position.add(movement);
+	checkRescues();
 }
 
 function moveBackward() {
-	duck.getWorldDirection(movement);
+	duckFamily.children[0].getWorldDirection(movement);
 	movement.applyMatrix3(rotateZtoX);
 	movement.multiplyScalar(-cubeSize);
 	duckFamily.position.add(movement);
@@ -152,7 +139,7 @@ document.addEventListener("keydown", async (e) => {
 	} else if (key == 'Space') {
 		jump();
 	} else if (key == 'KeyN') {
-		addDuckling();
+		rescueDuckling();
 	}
 }, false);
 
@@ -219,9 +206,108 @@ document.addEventListener('touchend', async (e) => {
 }, false)
 
 
+//--- MAPS ---//
+const lostDucklings = new THREE.Group();
+scene.add( lostDucklings );
+
+function spawnDuckling( x, z, y ) {
+	const newDuckling = new THREE.Object3D();
+	newDuckling.copy(duckling);
+	newDuckling.position.set( x+0.1, z, y );
+	lostDucklings.add( newDuckling );
+}
+
+const ducklingHeight = 0.24;
+
+function rescueDuckling() {
+	const newDuckling = duckling.clone();
+	newDuckling.position.y = duckFamily.position.y + ducklingHeight * (duckFamily.children.length - 1);
+	newDuckling.position.y += (0.34 + 0.05 * duckFamily.children.length) * cubeSize;
+	duckFamily.add( newDuckling );
+}
+
+function addPuzzleToScene( puzzleMap ) {
+	const cubeMap = new THREE.Group();
+	scene.add( cubeMap );
+  
+	const rows = puzzleMap.split('\n');
+	
+  for (let y = 0; y < rows.length; y++) {
+    const row = rows[y];
+    for (let x = 0; x < row.length; x++) {
+      const cell = row[x];
+      if (cell !== '.') {
+				const cubeColor = ((x + y) % 2 == 0) ? 0xEBAFE5 : 0xB689B2;
+        const cubeGeometry = new THREE.BoxGeometry( cubeSize, cubeSize, cubeSize );
+        const cubeMaterial = new THREE.MeshLambertMaterial({ color: cubeColor });
+        const cubeTile = new THREE.Mesh( cubeGeometry, cubeMaterial );
+        cubeTile.position.set( x*cubeSize, -0.7, y*cubeSize);
+        cubeMap.add( cubeTile );
+      }
+			if (cell === 'D') {
+				duckFamily.position.set( x*cubeSize, 0, y*cubeSize );
+				camera.position.set( d + x*cubeSize, d, d + y*cubeSize );
+				camera.lookAt( x*cubeSize, 0, y*cubeSize );
+			}
+			if (cell === 'C') {
+				spawnDuckling( x*cubeSize, -0.5, y*cubeSize );
+			}
+    }
+  }
+	
+}
+
+
+//--- GAMEPLAY FUNCTIONS ---//
+let foundEveryDuckling = false;
+
+function checkRescues() {
+	lostDucklings.children.forEach((child) => {
+		if (child.position.y == -0.5) {
+			const deltaX = Math.abs(child.position.x - duckFamily.position.x);
+			const deltaZ = Math.abs(child.position.z - duckFamily.position.z);
+			if ((deltaX + deltaZ) < 0.4) {
+				lostDucklings.remove(child);
+				rescueDuckling();
+			}
+		}
+	});
+	if(lostDucklings.children.length == 0) {
+		foundEveryDuckling = true;
+	}
+}
+
+
 //--- MAIN LOOP ---///
+let loading = true
+let puzzleNum = 0;
+
 function animate() {
 	requestAnimationFrame( animate );
+	if (loading && duckling && duck) {
+		foundEveryDuckling = false;
+		addPuzzleToScene(puzzles[puzzleNum]);
+		loading = false;
+	}
+	if (foundEveryDuckling) {
+		puzzleNum = (puzzleNum + 1) % puzzles.length;
+		scene.remove.apply(scene, scene.children);
+		// duckFamily.children.forEach((child) => {
+		// 	duckFamily.remove(child);
+		// });
+		// duckFamily.add( duck );
+		duckFamily = new THREE.Group();
+		const tempDuck = new THREE.Object3D();
+		tempDuck.copy( duck )
+		tempDuck.position.y += 0.35 * cubeSize;
+		duckFamily.add( tempDuck )
+		// scene.add( )
+		scene.add( directionalLight );
+		scene.add( ambientLight );
+		scene.add( duckFamily );
+		scene.add( lostDucklings );
+		loading = true;
+	}
 	renderer.render( scene, camera );
 }
 
