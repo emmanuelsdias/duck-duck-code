@@ -3,14 +3,15 @@ import WebGL from 'three/addons/capabilities/WebGL.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { puzzles } from './puzzles.js';
 
-//--- RENDERER ---///
+
+//--- RENDERER ---//
 const renderer = new THREE.WebGLRenderer( { antialias: true });
 renderer.setSize( window.innerWidth, window.innerHeight );
 // renderer.setPixelRatio(devicePixelRatio); // Makes mobile aspect ratio weird
 document.body.appendChild( renderer.domElement );
 
 
-//--- CAMERA ---///
+//--- CAMERA ---//
 const d = 4;
 let WIDTH = window.innerWidth;
 let HEIGHT = window.innerHeight;
@@ -43,12 +44,12 @@ function onWindowResize() {
 onWindowResize();
 
 
-//--- SCENE ---///
+//--- SCENE ---//
 const scene = new THREE.Scene();
 scene.background = new THREE.Color( 0x98eade );
 
 
-//--- LIGHTS ---///
+//--- LIGHTS ---//
 const ambientLight = new THREE.AmbientLight( 0xCCFDFF, 1.0 ); 
 scene.add( ambientLight );
 
@@ -57,7 +58,7 @@ directionalLight.position.set( 1, 2, 0 );
 scene.add( directionalLight );
 
 
-//--- OBJECT MODELS ---///
+//--- OBJECT MODELS ---//
 const loader = new GLTFLoader();
 
 let duckFamily = new THREE.Group();
@@ -79,7 +80,47 @@ loader.load('./assets/models/gltf/duckling.gltf', (gltf) => {
 });
 
 
-//--- MOVEMENT ---///
+//--- AUDIO ---//
+const audioLoader = new THREE.AudioLoader();
+const listener = new THREE.AudioListener();
+camera.add(listener);
+
+
+const jumpSounds = [];
+const jumpSoundFiles = [
+  './assets/sounds/jump_sound_1.wav',
+  './assets/sounds/jump_sound_2.wav',
+	'./assets/sounds/jump_sound_3.wav',
+	'./assets/sounds/jump_sound_4.wav',
+	'./assets/sounds/jump_sound_5.wav',
+	'./assets/sounds/jump_sound_6.wav',
+	'./assets/sounds/jump_sound_7.wav'
+];
+
+jumpSoundFiles.forEach((soundFile) => {
+  audioLoader.load(soundFile, (buffer) => {
+    const jumpSound = new THREE.Audio(listener);
+    jumpSound.setBuffer(buffer);
+    jumpSounds.push(jumpSound);
+  });
+});
+
+let currentJumpSound = null;
+function playJumpSound() {
+	if (jumpSounds.length > 0) {
+		if (currentJumpSound) {
+      currentJumpSound.stop();
+    }
+    const randomIndex = Math.floor(Math.random() * jumpSounds.length);
+    const randomJumpSound = jumpSounds[randomIndex];
+    randomJumpSound.play();
+
+		currentJumpSound = randomJumpSound;
+  }
+}
+
+
+//--- MOVEMENT ---//
 const cubeSize = 0.8;
 const movement = new THREE.Vector3();
 const rotateZtoX = new THREE.Matrix3(0, 0, 1, 0, 1, 0, -1, 0, 0);
@@ -109,6 +150,7 @@ function moveBackward() {
 }
 
 async function jump() {
+	playJumpSound();
 	let counter = 1;
 	duckFamily.traverse((child) => {
 		if (child.name === 'Duck' || child.name === 'Duckie') {
@@ -296,7 +338,7 @@ function checkRescues() {
 }
 
 
-//--- MAIN LOOP ---///
+//--- MAIN LOOP ---//
 let loading = true
 let puzzleNum = 0;
 
@@ -308,18 +350,17 @@ function animate() {
 		loading = false;
 	}
 	if (foundEveryDuckling) {
+		// Advance to next puzzle
 		puzzleNum = (puzzleNum + 1) % puzzles.length;
+		// Delete current scene
 		scene.remove.apply(scene, scene.children);
-		// duckFamily.children.forEach((child) => {
-		// 	duckFamily.remove(child);
-		// });
-		// duckFamily.add( duck );
+		// Recover duck model
 		duckFamily = new THREE.Group();
 		const tempDuck = new THREE.Object3D();
 		tempDuck.copy( duck )
 		tempDuck.position.y += 0.35 * cubeSize;
 		duckFamily.add( tempDuck )
-		// scene.add( )
+		// Create new scene
 		scene.add( directionalLight );
 		scene.add( ambientLight );
 		scene.add( duckFamily );
