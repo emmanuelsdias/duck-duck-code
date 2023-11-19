@@ -1,378 +1,209 @@
-import * as THREE from 'three';
-import WebGL from 'three/addons/capabilities/WebGL.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { puzzles } from './puzzles.js';
+import * as THREE from "three";
 
+import WebGL from "three/addons/capabilities/WebGL.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
-//--- RENDERER ---//
-const renderer = new THREE.WebGLRenderer( { antialias: true });
-renderer.setSize( window.innerWidth, window.innerHeight );
-// renderer.setPixelRatio(devicePixelRatio); // Makes mobile aspect ratio weird
-document.body.appendChild( renderer.domElement );
+import { playJumpSound } from "./audio.js";
+import { ambientColor, backgroundColor, directionalColor } from "./colors.js";
+import { D } from "./constants.js";
+import { checkRescues } from "./gameplay.js";
+import { addPuzzleToScene } from "./map.js";
+import { onKeydown } from "./movement.js";
+import { puzzles } from "./puzzles.js";
+import { onWindowResize } from "./utilities.js";
 
+//--- GLOBAL VARIABLES ---//
 
-//--- CAMERA ---//
-const d = 4;
-let WIDTH = window.innerWidth;
-let HEIGHT = window.innerHeight;
-const camera = new THREE.OrthographicCamera( 
-	- d * WIDTH / HEIGHT, 
-	+ d * WIDTH / HEIGHT, 
-	+ d, 
-	- d, 
-	1, 
-	1000 
-);
-camera.position.set( d, d, d );
-camera.lookAt( 0, 0, 0 );
+let width, height;
+let camera, scene, renderer;
+let ambientLight, directionalLight;
 
-window.addEventListener( 'resize', onWindowResize );
+let duck, duckling;
+let duckFamily, lostDucklings;
+const duckFile = "./assets/models/gltf/duck.gltf";
+const ducklingFile = "./assets/models/gltf/duckling.gltf";
 
-function onWindowResize() {
-	WIDTH = window.innerWidth;
-	HEIGHT = window.innerHeight;
-	
-	renderer.setSize( WIDTH, HEIGHT );
-	
-	camera.left   = - d * WIDTH / HEIGHT;
-  camera.right  = + d * WIDTH / HEIGHT;
-  camera.top    = + d;
-  camera.bottom = - d;
-
-	camera.updateProjectionMatrix();
-}
-onWindowResize();
-
-
-//--- SCENE ---//
-const scene = new THREE.Scene();
-scene.background = new THREE.Color( 0x98eade );
-
-
-//--- LIGHTS ---//
-const ambientLight = new THREE.AmbientLight( 0xCCFDFF, 1.0 ); 
-scene.add( ambientLight );
-
-const directionalLight = new THREE.DirectionalLight( 0xFFFFFF, 1.5 );
-directionalLight.position.set( 1, 2, 0 );
-scene.add( directionalLight );
-
-
-//--- OBJECT MODELS ---//
-const loader = new GLTFLoader();
-
-let duckFamily = new THREE.Group();
-scene.add( duckFamily );
-
-// Duck
-let duck;
-loader.load( './assets/models/gltf/duck.gltf', (gltf) => { 
-	duck = gltf.scene;
-	const tempDuck = new THREE.Object3D();
-	tempDuck.copy( duck );
-	duckFamily.add( tempDuck );
-} );
-
-// Duckling
-let duckling;
-loader.load('./assets/models/gltf/duckling.gltf', (gltf) => {
-	duckling = gltf.scene;
-});
-
-
-//--- AUDIO ---//
-const audioLoader = new THREE.AudioLoader();
-const listener = new THREE.AudioListener();
-camera.add(listener);
-
-
+let audioLoader, listener;
 const jumpSounds = [];
 const jumpSoundFiles = [
-  './assets/sounds/jump_sound_1.wav',
-  './assets/sounds/jump_sound_2.wav',
-	'./assets/sounds/jump_sound_3.wav',
-	'./assets/sounds/jump_sound_4.wav',
-	'./assets/sounds/jump_sound_5.wav',
-	'./assets/sounds/jump_sound_6.wav',
-	'./assets/sounds/jump_sound_7.wav'
+  "./assets/sounds/jump_sound_1.wav",
+  "./assets/sounds/jump_sound_2.wav",
+  "./assets/sounds/jump_sound_3.wav",
+  "./assets/sounds/jump_sound_4.wav",
+  "./assets/sounds/jump_sound_5.wav",
+  "./assets/sounds/jump_sound_6.wav",
+  "./assets/sounds/jump_sound_7.wav",
 ];
 
-jumpSoundFiles.forEach((soundFile) => {
-  audioLoader.load(soundFile, (buffer) => {
-    const jumpSound = new THREE.Audio(listener);
-    jumpSound.setBuffer(buffer);
-    jumpSounds.push(jumpSound);
+let cubes;
+
+//--- LOADING ---//
+
+function loadModels() {
+  const loader = new GLTFLoader();
+
+  loader.load(duckFile, (gltf) => {
+    duck = gltf.scene;
   });
-});
 
-let currentJumpSound = null;
-function playJumpSound() {
-	if (jumpSounds.length > 0) {
-		if (currentJumpSound) {
-      currentJumpSound.stop();
-    }
-    const randomIndex = Math.floor(Math.random() * jumpSounds.length);
-    const randomJumpSound = jumpSounds[randomIndex];
-    randomJumpSound.play();
-
-		currentJumpSound = randomJumpSound;
-  }
+  loader.load(ducklingFile, (gltf) => {
+    duckling = gltf.scene;
+  });
 }
 
-
-//--- MOVEMENT ---//
-const cubeSize = 0.8;
-const movement = new THREE.Vector3();
-const rotateZtoX = new THREE.Matrix3(0, 0, 1, 0, 1, 0, -1, 0, 0);
-
-function rotateLeft() {
-	duckFamily.rotation.y += Math.PI / 2;
+function loadAudio() {
+  jumpSoundFiles.forEach((soundFile) => {
+    audioLoader.load(soundFile, (buffer) => {
+      const jumpSound = new THREE.Audio(listener);
+      jumpSound.setBuffer(buffer);
+      jumpSounds.push(jumpSound);
+    });
+  });
 }
 
-function rotateRight() {
-	duckFamily.rotation.y -= Math.PI / 2;
+//--- INITIALIZATION ---//
+
+function initCamera() {
+  width = window.innerWidth;
+  height = window.innerHeight;
+  camera = new THREE.OrthographicCamera(
+    (-D * width) / height,
+    (+D * width) / height,
+    +D,
+    -D,
+    1,
+    1000
+  );
+  camera.position.set(D, D, D);
+  camera.lookAt(0, 0, 0);
 }
 
-function moveForward() {
-	jump();
-	duckFamily.children[0].getWorldDirection(movement);
-	movement.applyMatrix3(rotateZtoX);
-	movement.multiplyScalar(cubeSize);
-	duckFamily.position.add(movement);
-	checkRescues();
+function initAudio() {
+  audioLoader = new THREE.AudioLoader();
+  listener = new THREE.AudioListener();
+  camera.add(listener);
 }
 
-function moveBackward() {
-	duckFamily.children[0].getWorldDirection(movement);
-	movement.applyMatrix3(rotateZtoX);
-	movement.multiplyScalar(-cubeSize);
-	duckFamily.position.add(movement);
+function initScene() {
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(backgroundColor);
 }
 
-async function jump() {
-	playJumpSound();
-	let counter = 1;
-	duckFamily.traverse((child) => {
-		if (child.name === 'Duck' || child.name === 'Duckie') {
-			child.position.y += (0.3 + 0.05 * counter) * cubeSize;
-			counter++;
-		}
-	});
-	await new Promise(resolve => setTimeout(resolve, 200));
-	counter = 1;
-	duckFamily.traverse((child) => {
-		if (child.name === 'Duck' || child.name === 'Duckie') {
-			child.position.y -= (0.3 + 0.05 * counter) * cubeSize;
-			counter++;
-		}
-	});
+function initRenderer() {
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  // renderer.setPixelRatio(devicePixelRatio); // Makes aspect ratio weird on mobile
+  document.body.appendChild(renderer.domElement);
 }
 
-let recentMovement = false;
+function initLights() {
+  ambientLight = new THREE.AmbientLight(ambientColor, 1.0);
+  scene.add(ambientLight);
 
-document.addEventListener("keydown", async (e) => {
-	if (recentMovement) {
-		return;
-	}	
-	var key = e.code;
-	if (key == 'ArrowUp' || key == 'KeyW') { 
-		moveForward();
-	} else if (key == 'ArrowDown' || key == 'KeyS') { 
-		moveBackward();
-	} else if (key == 'ArrowLeft' || key == 'KeyA') {
-		rotateLeft();
-	} else if (key == 'ArrowRight' || key == 'KeyD') {
-		rotateRight();
-	} else if (key == 'Space') {
-		jump();
-	} else if (key == 'KeyN') {
-		rescueDuckling();
-	}
-
-	recentMovement = true;
-	await new Promise(resolve => setTimeout(resolve, 200));
-	recentMovement = false;
-}, false);
-
-
-//--- MOBILE MOVEMENT ---//
-// Later may be removed
-let gesture;
-let startX, startY;
-let distX, distY;
-let threshold = 100;
-let restraint = 100; 
-let swipeTimeLimit = 300; 
-let touchTimeLimit = 150; 
-let elapsedTime;
-let startTime;
-
-let recentGesture = false;
-
-async function handleGesture(direction) {
-	if (recentGesture) {
-		return;
-	}
-	elapsedTime = new Date().getTime() - startTime
-	if (direction === 'left') {
-		rotateLeft();
-	} else if (direction === 'right') {
-		rotateRight();
-	} else if (direction === 'up') {
-		moveForward();
-	} else if (direction === 'down') {
-		moveBackward();
-	} else if (direction === 'jump') {
-		jump();
-	}
-	recentGesture = true;
-	await new Promise(resolve => setTimeout(resolve, 100));
-	recentGesture = false;
+  directionalLight = new THREE.DirectionalLight(directionalColor, 1.5);
+  directionalLight.position.set(1, 2, 0);
+  scene.add(directionalLight);
 }
 
-document.addEventListener('touchstart', (e) => {
-	const touchObject = e.changedTouches[0];
-	gesture = 'none';
-	startX = touchObject.pageX;
-	startY = touchObject.pageY;
-	startTime = new Date().getTime();
-	e.preventDefault();
-}, false)
+function initModels() {
+  duckFamily = new THREE.Group();
+  scene.add(duckFamily);
 
-document.addEventListener('touchmove', (e) => {
-	e.preventDefault();
-}, false)
+  lostDucklings = new THREE.Group();
+  scene.add(lostDucklings);
 
-document.addEventListener('touchend', async (e) => {
-	const touchObject = e.changedTouches[0];
-	distX = touchObject.pageX - startX;
-	distY = touchObject.pageY - startY;
-	elapsedTime = new Date().getTime() - startTime;
-
-	if (elapsedTime < swipeTimeLimit){
-		// Horizontal swipe
-		if (Math.abs(distX) >= threshold && Math.abs(distY) <= restraint){ 
-			gesture = (distX < 0) ? 'left' : 'right';
-		// Vertical swipe
-		} else if (Math.abs(distY) >= threshold && Math.abs(distX) <= restraint){
-			gesture = (distY < 0) ? 'up' : 'down';
-		// Check if tap
-		} else if (elapsedTime < touchTimeLimit && Math.abs(distX) + Math.abs(distY) <= restraint) {
-			gesture = 'jump';
-		}
-	}
-	handleGesture(gesture);
-	e.preventDefault();
-}, false)
-
-
-//--- MAPS ---//
-const lostDucklings = new THREE.Group();
-scene.add( lostDucklings );
-
-function spawnDuckling( x, z, y ) {
-	const newDuckling = new THREE.Object3D();
-	newDuckling.copy(duckling);
-	newDuckling.position.set( x+0.1, z, y );
-	lostDucklings.add( newDuckling );
+  cubes = new THREE.Group();
+  scene.add(cubes);
 }
 
-const ducklingHeight = 0.24;
-
-function rescueDuckling() {
-	const newDuckling = duckling.clone();
-	newDuckling.position.y = duckFamily.position.y + ducklingHeight * (duckFamily.children.length - 1);
-	newDuckling.position.y += (0.34 + 0.05 * duckFamily.children.length) * cubeSize;
-	duckFamily.add( newDuckling );
+function init() {
+  initCamera();
+  initAudio();
+  initScene();
+  initRenderer();
+  initLights();
+  initModels();
+  onWindowResize(camera, renderer, window);
 }
 
-function addPuzzleToScene( puzzleMap ) {
-	const cubeMap = new THREE.Group();
-	scene.add( cubeMap );
-  
-	const rows = puzzleMap.split('\n');
-	
-  for (let y = 0; y < rows.length; y++) {
-    const row = rows[y];
-    for (let x = 0; x < row.length; x++) {
-      const cell = row[x];
-      if (cell !== '.') {
-				const cubeColor = ((x + y) % 2 == 0) ? 0xEBAFE5 : 0xB689B2;
-        const cubeGeometry = new THREE.BoxGeometry( cubeSize, cubeSize, cubeSize );
-        const cubeMaterial = new THREE.MeshLambertMaterial({ color: cubeColor });
-        const cubeTile = new THREE.Mesh( cubeGeometry, cubeMaterial );
-        cubeTile.position.set( x*cubeSize, -0.7, y*cubeSize);
-        cubeMap.add( cubeTile );
-      }
-			if (cell === 'D') {
-				duckFamily.position.set( x*cubeSize, 0, y*cubeSize );
-				camera.position.set( d + x*cubeSize, d, d + y*cubeSize );
-				camera.lookAt( x*cubeSize, 0, y*cubeSize );
-			}
-			if (cell === 'C') {
-				spawnDuckling( x*cubeSize, -0.5, y*cubeSize );
-			}
-    }
-  }
-	
+function reset() {
+  initScene();
+  initLights();
+  initModels();
 }
 
+//--- LISTENERS ---//
 
-//--- GAMEPLAY FUNCTIONS ---//
-let foundEveryDuckling = false;
+document.addEventListener(
+  "keydown",
+  (e) => { onKeydown(e, duckFamily, status); },
+  false
+);
 
-function checkRescues() {
-	lostDucklings.children.forEach((child) => {
-		if (child.position.y == -0.5) {
-			const deltaX = Math.abs(child.position.x - duckFamily.position.x);
-			const deltaZ = Math.abs(child.position.z - duckFamily.position.z);
-			if ((deltaX + deltaZ) < 0.4) {
-				lostDucklings.remove(child);
-				rescueDuckling();
-			}
-		}
-	});
-	if(lostDucklings.children.length == 0) {
-		foundEveryDuckling = true;
-	}
-}
-
+window.addEventListener(
+  "resize", 
+  () => { onWindowResize(camera, renderer, window); }, 
+  false
+);
 
 //--- MAIN LOOP ---//
-let loading = true
-let puzzleNum = 0;
 
-function animate() {
-	requestAnimationFrame( animate );
-	if (loading && duckling && duck) {
-		foundEveryDuckling = false;
-		addPuzzleToScene(puzzles[puzzleNum]);
-		loading = false;
-	}
-	if (foundEveryDuckling) {
-		// Advance to next puzzle
-		puzzleNum = (puzzleNum + 1) % puzzles.length;
-		// Delete current scene
-		scene.remove.apply(scene, scene.children);
-		// Recover duck model
-		duckFamily = new THREE.Group();
-		const tempDuck = new THREE.Object3D();
-		tempDuck.copy( duck )
-		tempDuck.position.y += 0.35 * cubeSize;
-		duckFamily.add( tempDuck )
-		// Create new scene
-		scene.add( directionalLight );
-		scene.add( ambientLight );
-		scene.add( duckFamily );
-		scene.add( lostDucklings );
-		loading = true;
-	}
-	renderer.render( scene, camera );
+const status = { 
+  advance : false, 
+  level   : 0, 
+  loading : true, 
+  moved   : false, 
+  jumped  : false 
+};
+
+function loadNewScene() {
+  // Add duck model to new scene
+  duckFamily.add(new THREE.Object3D().copy(duck));
+  // Add duckling and map to new scene
+  addPuzzleToScene(
+    camera,
+    puzzles[status.level],
+    cubes,
+    duckFamily,
+    lostDucklings,
+    duckling
+  );
 }
 
-if ( WebGL.isWebGLAvailable() ) {
-	animate();
+function animate() {
+  requestAnimationFrame(animate);
+
+  if (status.loading && duckling && duck) {
+    status.loading = false;
+    loadNewScene();
+  }
+
+  if (status.moved) {
+    status.moved = false;
+    checkRescues(duckFamily, lostDucklings, duckling, status);
+  }
+  
+  if (status.jumped) {
+    status.jumped = false;
+    playJumpSound(jumpSounds);
+  }
+  
+  if (status.advance) {
+    status.advance = false;
+    status.level = (status.level + 1) % puzzles.length;
+    reset();
+    status.loading = true;
+  }
+
+  renderer.render(scene, camera);
+}
+
+if (WebGL.isWebGLAvailable()) {
+  init();
+  loadModels();
+  loadAudio();
+  animate();
 } else {
-	const warning = WebGL.getWebGLErrorMessage();
-	document.getElementById( 'warning-container' ).appendChild( warning );
+  const warning = WebGL.getWebGLErrorMessage();
+  document.getElementById("warning-container").appendChild(warning);
 }
