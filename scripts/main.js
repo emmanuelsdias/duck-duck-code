@@ -1,5 +1,4 @@
 import * as THREE from "three";
-
 import WebGL from "three/addons/capabilities/WebGL.js";
 
 import { loadAudio, playJumpSound } from "./audio.js";
@@ -59,6 +58,11 @@ function init() {
   initLights(three);
   initModels(groups, three);
   onWindowResize(three);
+}
+
+function load() {
+  loadModels(models);
+  loadAudio(three, jumpSounds);
 }
 
 function reset() {
@@ -132,8 +136,7 @@ function animate() {
 
 if (WebGL.isWebGLAvailable()) {
   init();
-  loadModels(models);
-  loadAudio(three, jumpSounds);
+  load();
   animate();
 } else {
   const warning = WebGL.getWebGLErrorMessage();
