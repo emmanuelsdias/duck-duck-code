@@ -3,20 +3,18 @@ import { D } from "./constants.js";
 /**
  * Resizes the window using an isometric projection.
  *
- * @param camera   THREE.js Camera.
- * @param renderer THREE.js Renderer.
- * @param window   Window object.
+ * @param three  Object containing THREE.js classes.
  */
-export function onWindowResize( camera, renderer, window ) {
+export function onWindowResize(three) {
   const width = window.innerWidth;
   const height = window.innerHeight;
 
-  renderer.setSize(width, height);
+  three.renderer.setSize(width, height);
 
-  camera.left = (-D * width) / height;
-  camera.right = (+D * width) / height;
-  camera.top = +D;
-  camera.bottom = -D;
+  three.camera.left = (-D * width) / height;
+  three.camera.right = (+D * width) / height;
+  three.camera.top = +D;
+  three.camera.bottom = -D;
 
-  camera.updateProjectionMatrix();
+  three.camera.updateProjectionMatrix();
 }

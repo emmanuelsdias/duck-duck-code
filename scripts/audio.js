@@ -1,3 +1,31 @@
+import * as THREE from "three";
+
+const jumpSoundFiles = [
+  "./assets/sounds/jump_sound_1.wav",
+  "./assets/sounds/jump_sound_2.wav",
+  "./assets/sounds/jump_sound_3.wav",
+  "./assets/sounds/jump_sound_4.wav",
+  "./assets/sounds/jump_sound_5.wav",
+  "./assets/sounds/jump_sound_6.wav",
+  "./assets/sounds/jump_sound_7.wav",
+];
+
+/**
+ * Loads audio files and stores them in the jumpSounds array.
+ *
+ * @param three      Object containing THREE.js classes.
+ * @param jumpSounds Array where all jump sounds will be added.
+ */
+export function loadAudio(three, jumpSounds) {
+  jumpSoundFiles.forEach((soundFile) => {
+    three.audioLoader.load(soundFile, (buffer) => {
+      const jumpSound = new THREE.Audio(three.listener);
+      jumpSound.setBuffer(buffer);
+      jumpSounds.push(jumpSound);
+    });
+  });
+}
+
 let currentJumpSound = null;
 
 /**
