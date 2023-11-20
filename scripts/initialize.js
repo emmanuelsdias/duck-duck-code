@@ -4,6 +4,18 @@ import { ambientColor, backgroundColor, directionalColor } from "./colors.js";
 import { D } from "./constants.js";
 
 /**
+ * Initialize THREE.js WebGL Renderer.
+ *
+ * @param three Object storing the THREE.js classes we use.
+ */
+export function initRenderer(three) {
+  three.renderer = new THREE.WebGLRenderer({ antialias: true });
+  three.renderer.setSize(window.innerWidth, window.innerHeight);
+  // three.renderer.setPixelRatio(devicePixelRatio); // Makes aspect ratio weird on mobile
+  document.body.appendChild(three.renderer.domElement);
+}
+
+/**
  * Initialize THREE.js Camera.
  *
  * @param three Object storing the THREE.js classes we use.
@@ -25,6 +37,7 @@ export function initCamera(three) {
 
 /**
  * Initialize THREE.js AudioListener and AudioLoader.
+ * Depends on Camera being initialized.
  *
  * @param three Object storing the THREE.js classes we use.
  */
@@ -45,19 +58,8 @@ export function initScene(three) {
 }
 
 /**
- * Initialize THREE.js WebGL Renderer.
- *
- * @param three Object storing the THREE.js classes we use.
- */
-export function initRenderer(three) {
-  three.renderer = new THREE.WebGLRenderer({ antialias: true });
-  three.renderer.setSize(window.innerWidth, window.innerHeight);
-  // three.renderer.setPixelRatio(devicePixelRatio); // Makes aspect ratio weird on mobile
-  document.body.appendChild(three.renderer.domElement);
-}
-
-/**
  * Initialize THREE.js Lights used in the scene.
+ * Depends on Scene being initialized.
  *
  * @param three Object storing the THREE.js classes we use.
  */
@@ -72,6 +74,7 @@ export function initLights(three) {
 
 /**
  * Initialize THREE.js Groups used in the scene.
+ * Depends on Scene being initialized.
  *
  * @param three Object storing the THREE.js classes we use.
  */

@@ -4,10 +4,10 @@ import WebGL from "three/addons/capabilities/WebGL.js";
 import { loadAudio, playJumpSound } from "./audio.js";
 import { checkRescues } from "./gameplay.js";
 import {
+  initRenderer,
   initCamera,
   initAudio,
   initScene,
-  initRenderer,
   initLights,
   initGroups,
 } from "./initialize.js";
@@ -51,10 +51,10 @@ const jumpSounds = [];
 //--- INITIALIZATION ---//
 
 function init() {
+  initRenderer(three);
   initCamera(three);
   initAudio(three);
   initScene(three);
-  initRenderer(three);
   initLights(three);
   initGroups(groups, three);
   onWindowResize(three);
