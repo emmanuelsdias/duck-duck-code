@@ -13,7 +13,7 @@ const jumpSoundFiles = [
 /**
  * Loads audio files and stores them in the jumpSounds array.
  *
- * @param three      Object containing THREE.js classes.
+ * @param three      Object storing the THREE.js classes we use.
  * @param jumpSounds Array where all jump sounds will be added.
  */
 export function loadAudio(three, jumpSounds) {

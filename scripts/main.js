@@ -9,7 +9,7 @@ import {
   initScene,
   initRenderer,
   initLights,
-  initModels,
+  initGroups,
 } from "./initialize.js";
 import { addPuzzleToScene } from "./map.js";
 import { loadModels } from "./models.js";
@@ -56,7 +56,7 @@ function init() {
   initScene(three);
   initRenderer(three);
   initLights(three);
-  initModels(groups, three);
+  initGroups(groups, three);
   onWindowResize(three);
 }
 
@@ -68,7 +68,7 @@ function load() {
 function reset() {
   initScene(three);
   initLights(three);
-  initModels(groups, three);
+  initGroups(groups, three);
 }
 
 //--- LISTENERS ---//

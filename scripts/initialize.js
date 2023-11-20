@@ -3,6 +3,11 @@ import * as THREE from "three";
 import { ambientColor, backgroundColor, directionalColor } from "./colors.js";
 import { D } from "./constants.js";
 
+/**
+ * Initialize THREE.js Camera.
+ *
+ * @param three Object storing the THREE.js classes we use.
+ */
 export function initCamera(three) {
   const width = window.innerWidth;
   const height = window.innerHeight;
@@ -18,17 +23,32 @@ export function initCamera(three) {
   three.camera.lookAt(0, 0, 0);
 }
 
+/**
+ * Initialize THREE.js AudioListener and AudioLoader.
+ *
+ * @param three Object storing the THREE.js classes we use.
+ */
 export function initAudio(three) {
   three.audioLoader = new THREE.AudioLoader();
   three.listener = new THREE.AudioListener();
   three.camera.add(three.listener);
 }
 
+/**
+ * Initialize THREE.js Scene.
+ *
+ * @param three Object storing the THREE.js classes we use.
+ */
 export function initScene(three) {
   three.scene = new THREE.Scene();
   three.scene.background = new THREE.Color(backgroundColor);
 }
 
+/**
+ * Initialize THREE.js WebGL Renderer.
+ *
+ * @param three Object storing the THREE.js classes we use.
+ */
 export function initRenderer(three) {
   three.renderer = new THREE.WebGLRenderer({ antialias: true });
   three.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -36,6 +56,11 @@ export function initRenderer(three) {
   document.body.appendChild(three.renderer.domElement);
 }
 
+/**
+ * Initialize THREE.js Lights used in the scene.
+ *
+ * @param three Object storing the THREE.js classes we use.
+ */
 export function initLights(three) {
   const ambientLight = new THREE.AmbientLight(ambientColor, 1.0);
   three.scene.add(ambientLight);
@@ -45,7 +70,12 @@ export function initLights(three) {
   three.scene.add(directionalLight);
 }
 
-export function initModels(groups, three) {
+/**
+ * Initialize THREE.js Groups used in the scene.
+ *
+ * @param three Object storing the THREE.js classes we use.
+ */
+export function initGroups(groups, three) {
   groups.duckFamily = new THREE.Group();
   three.scene.add(groups.duckFamily);
 
