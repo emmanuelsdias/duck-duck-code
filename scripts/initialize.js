@@ -11,7 +11,7 @@ import { D } from "./constants.js";
 export function initRenderer(three) {
   three.renderer = new THREE.WebGLRenderer({ antialias: true });
   three.renderer.setSize(window.innerWidth, window.innerHeight);
-  // three.renderer.setPixelRatio(devicePixelRatio); // Makes aspect ratio weird on mobile
+  three.renderer.setPixelRatio(devicePixelRatio); // Sometimes makes aspect ratio weird on mobile
   document.body.appendChild(three.renderer.domElement);
 }
 
