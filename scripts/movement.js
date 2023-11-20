@@ -83,7 +83,7 @@ let recentMovement = false;
  */
 export async function onKeydown(e, duckFamily, status) {
   if (!recentMovement) {
-    var key = e.code;
+    const key = e.code;
     switch (key) {
       case "ArrowUp":
       case "KeyW":
