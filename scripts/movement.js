@@ -1,14 +1,18 @@
 import * as THREE from "three";
 
-import { CUBE_SIZE, Z_TO_X } from "./constants.js";
+import { CUBE_SIZE, Y_AXIS } from "./constants.js";
+import { canDuckBeHere } from "./map.js";
+import { roundVector3 } from "./utilities.js";
 
 /**
  * Rotates duck and rescued ducklings to the left.
  *
  * @param duckFamily THREE.js Group containing duck and rescued ducklings.
  */
-function rotateLeft(duckFamily) {
-  duckFamily.rotation.y += Math.PI / 2;
+function rotateLeft(duckFamily, status) {
+  const angle = + Math.PI / 2;
+  duckFamily.rotation.y += angle;
+  roundVector3( status.duckDir.applyAxisAngle( Y_AXIS, angle ) )
 }
 
 /**
@@ -16,8 +20,10 @@ function rotateLeft(duckFamily) {
  *
  * @param duckFamily THREE.js Group containing duck and rescued ducklings.
  */
-function rotateRight(duckFamily) {
-  duckFamily.rotation.y -= Math.PI / 2;
+function rotateRight(duckFamily, status) {
+  const angle = - Math.PI / 2;
+  duckFamily.rotation.y += angle;
+  roundVector3( status.duckDir.applyAxisAngle( Y_AXIS, angle ) );
 }
 
 /**
@@ -25,10 +31,14 @@ function rotateRight(duckFamily) {
  *
  * @param duckFamily THREE.js Group containing duck and rescued ducklings.
  */
-function moveForward(duckFamily) {
+function moveForward(duckFamily, status) {
+  status.duckPos.add( status.duckDir );
+  if (!canDuckBeHere(status)) {
+    status.duckPos.sub(status.duckDir);
+    return; 
+  };
   const direction = new THREE.Vector3();
-  duckFamily.children[0].getWorldDirection(direction);
-  direction.applyMatrix3(Z_TO_X);
+  direction.copy(status.duckDir);
   direction.multiplyScalar(CUBE_SIZE);
   duckFamily.position.add(direction);
 }
@@ -38,10 +48,14 @@ function moveForward(duckFamily) {
  *
  * @param duckFamily THREE.js Group containing duck and rescued ducklings.
  */
-function moveBackward(duckFamily) {
+function moveBackward(duckFamily, status) {
+  status.duckPos.sub(status.duckDir);
+  if (!canDuckBeHere(status)) {
+    status.duckPos.add(status.duckDir);
+    return; 
+  };
   const direction = new THREE.Vector3();
-  duckFamily.children[0].getWorldDirection(direction);
-  direction.applyMatrix3(Z_TO_X);
+  direction.copy(status.duckDir);
   direction.multiplyScalar(-CUBE_SIZE);
   duckFamily.position.add(direction);
 }
@@ -88,7 +102,7 @@ export async function onKeydown(e, duckFamily, status) {
       case "ArrowUp":
       case "KeyW":
         jump(duckFamily);
-        moveForward(duckFamily);
+        moveForward(duckFamily, status);
         status.jumped = true;
         status.moved = true;
         break;
@@ -96,19 +110,19 @@ export async function onKeydown(e, duckFamily, status) {
       case "ArrowDown":
       case "KeyS":
         jump(duckFamily);
-        moveBackward(duckFamily);
+        moveBackward(duckFamily, status);
         status.jumped = true;
         status.moved = true;
         break;
   
       case "ArrowLeft":
       case "KeyA":
-        rotateLeft(duckFamily);
+        rotateLeft(duckFamily, status);
         break;
   
       case "ArrowRight":
       case "KeyD":
-        rotateRight(duckFamily);
+        rotateRight(duckFamily, status);
         break;
   
       case "Space":

@@ -7,17 +7,17 @@ import { D, CUBE_SIZE } from "./constants.js";
  * Adds a new cube on the scene.
  *
  * @param x     New cube's x index position.
- * @param y     New cube's y index position.
+ * @param z     New cube's z index position.
  * @param cubes THREE.js Group containing cubes on the scene.
  */
-function addCube(x, y, cubes) {
-  const cubeColor = (x + y) % 2 == 0 ? lightCubeColor : darkCubeColor;
+function addCube(x, z, cubes) {
+  const cubeColor = (x + z) % 2 == 0 ? lightCubeColor : darkCubeColor;
   const cubeGeometry = new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
   const cubeMaterial = new THREE.MeshLambertMaterial({
     color: cubeColor,
   });
   const cubeTile = new THREE.Mesh(cubeGeometry, cubeMaterial);
-  cubeTile.position.set(x * CUBE_SIZE, -0.7, y * CUBE_SIZE);
+  cubeTile.position.set(x * CUBE_SIZE, -0.7, z * CUBE_SIZE);
   cubes.add(cubeTile);
 }
 
@@ -25,28 +25,28 @@ function addCube(x, y, cubes) {
  * Positions the duck family on the scene and centers the camera on it.
  *
  * @param x          Duck's x index position.
- * @param y          Duck's y index position.
+ * @param z          Duck's z index position.
  * @param duckFamily THREE.js Group containing duck and rescued ducklings.
  * @param camera     THREE.js Camera.
  */
-function positionDuckFamily(x, y, duckFamily, camera) {
-  duckFamily.position.set(x * CUBE_SIZE, 0, y * CUBE_SIZE);
-  camera.position.set(D + x * CUBE_SIZE, D, D + y * CUBE_SIZE);
-  camera.lookAt(x * CUBE_SIZE, 0, y * CUBE_SIZE);
+function positionDuckFamily(x, z, duckFamily, camera) {
+  duckFamily.position.set(x * CUBE_SIZE, 0, z * CUBE_SIZE);
+  camera.position.set(D + x * CUBE_SIZE, D, D + z * CUBE_SIZE);
+  camera.lookAt(x * CUBE_SIZE, 0, z * CUBE_SIZE);
 }
 
 /**
  * Adds a new duckling to the scene.
  *
  * @param x             New cube's x index position.
- * @param y             New cube's y index position.
+ * @param z             New cube's z index position.
  * @param lostDucklings THREE.js Group containing lost ducklings on the scene.
  * @param duckling      Duckling model.
  */
-function addDuckling(x, y, lostDucklings, duckling) {
+function addDuckling(x, z, lostDucklings, duckling) {
   const newDuckling = new THREE.Object3D();
   newDuckling.copy(duckling);
-  newDuckling.position.set(x * CUBE_SIZE + 0.1, -0.5, y * CUBE_SIZE);
+  newDuckling.position.set(x * CUBE_SIZE + 0.1, -0.5, z * CUBE_SIZE);
   lostDucklings.add(newDuckling);
 }
 
@@ -59,31 +59,53 @@ function addDuckling(x, y, lostDucklings, duckling) {
  * @param duckFamily    THREE.js Group containing duck and rescued ducklings.
  * @param lostDucklings THREE.js Group containing lost ducklings on the scene.
  * @param duckling      Duckling model.
+ * @param status        Object storing the current game status.
  */
-export function addPuzzleToScene(
+export function loadNextPuzzle(
   camera,
   puzzle,
   cubes,
   duckFamily,
   lostDucklings,
-  duckling
+  duckling,
+  status
 ) {
   const rows = puzzle.split("\n");
-  for (let y = 0; y < rows.length; y++) {
-    for (let x = 0; x < rows[y].length; x++) {
-      const cell = rows[y][x];
+  status.map = [];
+  status.duckDir.x = 1;
+  status.duckDir.z = 0;
+  for (let z = 0; z < rows.length; z++) {
+    status.map.push([]);
+    for (let x = 0; x < rows[z].length; x++) {
+      const cell = rows[z][x];
+      // Add cell to status' map
+      status.map[z].push(cell);
       // Add floor cubes 
       if (cell !== ".") {
-        addCube(x, y, cubes);
+        addCube(x, z, cubes);
       }
-      // Position duck starting position
+      // Position duck starting position and record it in status
       if (cell === "D") {
-        positionDuckFamily(x, y, duckFamily, camera);
+        positionDuckFamily(x, z, duckFamily, camera);
+        status.duckPos = new THREE.Vector3(x, 0, z);
       }
       // Add lost ducklings
       if (cell === "L") {
-        addDuckling(x, y, lostDucklings, duckling);
+        addDuckling(x, z, lostDucklings, duckling);
       }
     }
   }
+}
+
+/**
+ * Checks if the duck is standing on a valid map position.
+ *
+ * @param status Object storing the current game status.
+ */
+export function canDuckBeHere( status ) {
+  const x = status.duckPos.x;
+  const z = status.duckPos.z;
+  if (z in status.map && x in status.map[z]) 
+    return status.map[z][x] !== '.';
+  return false;
 }

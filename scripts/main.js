@@ -11,7 +11,7 @@ import {
   initLights,
   initGroups,
 } from "./initialize.js";
-import { addPuzzleToScene } from "./map.js";
+import { loadNextPuzzle } from "./map.js";
 import { loadModels } from "./models.js";
 import { onKeydown } from "./movement.js";
 import { puzzles } from "./puzzles.js";
@@ -43,7 +43,10 @@ const status = {
   level   : 0, 
   loading : true, 
   moved   : false, 
-  jumped  : false 
+  jumped  : false,
+  map     : [],
+  duckPos : new THREE.Vector2(0, 0),
+  duckDir : new THREE.Vector3(1, 0, 0)
 };
 
 const jumpSounds = [];
@@ -75,7 +78,7 @@ function reset() {
 
 document.addEventListener(
   "keydown",
-  (e) => { onKeydown(e, groups.duckFamily, status); },
+  (e) => { if (!status.loading) onKeydown(e, groups.duckFamily, status); },
   false
 );
 
@@ -91,13 +94,14 @@ function loadNewScene() {
   // Add duck model to new scene
   groups.duckFamily.add(new THREE.Object3D().copy(models.duck));
   // Add duckling and map to new scene
-  addPuzzleToScene(
+  loadNextPuzzle(
     three.camera,
     puzzles[status.level],
     groups.cubes,
     groups.duckFamily,
     groups.lostDucklings,
-    models.duckling
+    models.duckling,
+    status
   );
 }
 

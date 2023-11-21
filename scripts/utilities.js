@@ -18,3 +18,14 @@ export function onWindowResize(three) {
 
   three.camera.updateProjectionMatrix();
 }
+
+/**
+ * Rounds the components of a THREE.js Vector3.
+ * 
+ * @param vector THREE.js Vector3 to round.
+ */
+export function roundVector3(vector) {
+  vector.x = Math.round(vector.x);
+  vector.y = Math.round(vector.y);
+  vector.z = Math.round(vector.z);
+}
