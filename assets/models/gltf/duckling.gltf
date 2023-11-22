@@ -35,9 +35,9 @@
 			"name":"Yellow Coat",
 			"pbrMetallicRoughness":{
 				"baseColorFactor":[
-					0.9803921580314636,
-					0.9490196108818054,
-					0.07450980693101883,
+					1,
+					0.9686274514,
+					0,
 					1
 				],
 				"metallicFactor":0,
