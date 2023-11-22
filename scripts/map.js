@@ -119,3 +119,16 @@ export function canDuckBeHere( status ) {
     return status.map[z][x] !== '.';
   return false;
 }
+
+/**
+ * Checks if the duck is standing on a water (blue) cube.
+ *
+ * @param status Object storing the current game status.
+ */
+export function isDuckOnWater( status ) {
+  const x = status.duckPos.x;
+  const z = status.duckPos.z;
+  if (z in status.map && x in status.map[z]) 
+    return status.map[z][x] === 'B' || status.map[z][x] === 'b';
+  return false;
+}
