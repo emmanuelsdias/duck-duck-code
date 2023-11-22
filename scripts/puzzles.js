@@ -7,7 +7,7 @@
 // .: No cube
 
 export const puzzles = {
-  size: 6,
+  size: 8,
 
   1:  'dXX',
 
