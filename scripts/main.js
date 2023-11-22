@@ -40,7 +40,7 @@ const models = {
 
 const status = { 
   advance : false, 
-  level   : 0, 
+  level   : 1, 
   loading : true, 
   moved   : false, 
   jumped  : false,
@@ -105,6 +105,13 @@ function loadNewScene() {
   );
 }
 
+function advanceLevel() {
+  status.level++;
+  if (status.level > puzzles.size) {
+    status.level = 1;
+  }
+}
+
 function animate() {
   requestAnimationFrame(animate);
 
@@ -130,7 +137,7 @@ function animate() {
 
   if (status.advance) {
     status.advance = false;
-    status.level = (status.level + 1) % puzzles.length;
+    advanceLevel();
     reset();
     status.loading = true;
   }

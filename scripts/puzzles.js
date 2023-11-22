@@ -1,43 +1,47 @@
 // Puzzles are stored as strings, with each line representing a new row of cubes
 // Each character represents a cube (or not), according to the following:
 //
-// D: Cube where the duck starts
-// L: Cube with a lost duckling
-// X: Cube
+// d: Cube where the duck starts
+// x/X: Default cube (without/with lost duckling)
+// b/B: Water cube (without/with lost duckling)
 // .: No cube
 
-const puzzle1 = 
-'DLL';
+export const puzzles = {
+  size: 6,
 
-const puzzle2 = 
-'DLL' + '\n' +
-'..L' + '\n' +
-'..L';
+  1:  'dXX',
 
-const puzzle3 =
-'DLL' + '\n' +
-'L.L' + '\n' +
-'LLL';
+  2:  'dXX' + '\n' +
+      '..X' + '\n' +
+      '..X',
 
-const puzzle4 = 
-'LLL..' + '\n' +
-'L.L..' + '\n' +
-'LLDLL' + '\n' +
-'..L.L' + '\n' +
-'..LLL';
+  3:  'dXB' + '\n' +
+      '..X' + '\n' +
+      '..X',
 
-const puzzle5 = 
-'LLLLL' + '\n' +
-'L.L.L' + '\n' +
-'LLDLL' + '\n' +
-'L.L.L' + '\n' +
-'LLLLL';
+  4:  'dXX' + '\n' +
+      'X.X' + '\n' +
+      'XXX',
 
-const puzzle6 = 
-'.LLL.' + '\n' +
-'LXXXL' + '\n' +
-'LXDXL' + '\n' +
-'LXXXL' + '\n' +
-'.LLL.';
+  5:  'dXB' + '\n' +
+      'X.X' + '\n' +
+      'BXB',
 
-export const puzzles = [puzzle1, puzzle2, puzzle3, puzzle4, puzzle5, puzzle6]
+  6:  'XXX..' + '\n' +
+      'X.X..' + '\n' +
+      'XXdXX' + '\n' +
+      '..X.X' + '\n' +
+      '..XXX',
+  
+  7:  'XXXXX' + '\n' +
+      'X.X.X' + '\n' +
+      'XXdXX' + '\n' +
+      'X.X.X' + '\n' +
+      'XXXXX',
+  
+  8:  '.XXX.' + '\n' +
+      'XxxxX' + '\n' +
+      'XxdxX' + '\n' +
+      'XxxxX' + '\n' +
+      '.XXX.',
+}

@@ -1,7 +1,8 @@
 import * as THREE from "three";
 
-import { lightCubeColor, darkCubeColor } from "./colors.js";
+import { lightBlue, darkBlue, lightGreen, darkGreen } from "./colors.js";
 import { D, CUBE_SIZE } from "./constants.js";
+import { isUpperCase } from "./utilities.js";
 
 /**
  * Adds a new cube on the scene.
@@ -10,8 +11,17 @@ import { D, CUBE_SIZE } from "./constants.js";
  * @param z     New cube's z index position.
  * @param cubes THREE.js Group containing cubes on the scene.
  */
-function addCube(x, z, cubes) {
-  const cubeColor = (x + z) % 2 == 0 ? lightCubeColor : darkCubeColor;
+function addCube(x, z, cell, cubes) {
+  let cubeColor;
+  switch(cell) {
+    case 'b':
+    case 'B':
+      cubeColor = (x + z) % 2 == 0 ? lightBlue : darkBlue;
+      break;
+    default:
+      cubeColor = (x + z) % 2 == 0 ? lightGreen : darkGreen;
+      break;
+  }
   const cubeGeometry = new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
   const cubeMaterial = new THREE.MeshLambertMaterial({
     color: cubeColor,
@@ -82,15 +92,15 @@ export function loadNextPuzzle(
       status.map[z].push(cell);
       // Add floor cubes 
       if (cell !== ".") {
-        addCube(x, z, cubes);
+        addCube(x, z, cell, cubes);
       }
       // Position duck starting position and record it in status
-      if (cell === "D") {
+      if (cell === "d") {
         positionDuckFamily(x, z, duckFamily, camera);
         status.duckPos = new THREE.Vector3(x, 0, z);
       }
       // Add lost ducklings
-      if (cell === "L") {
+      if (isUpperCase(cell)) {
         addDuckling(x, z, lostDucklings, duckling);
       }
     }

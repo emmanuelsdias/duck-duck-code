@@ -29,3 +29,13 @@ export function roundVector3(vector) {
   vector.y = Math.round(vector.y);
   vector.z = Math.round(vector.z);
 }
+
+/**
+ * Returns true if the given string is uppercase.
+ * 
+ * @param str String to check.
+ */
+export function isUpperCase(str) {
+  return str === str.toUpperCase() &&
+         str !== str.toLowerCase();
+}
