@@ -17,3 +17,36 @@ html {
 html, body {  
   overscroll-behavior: none;
 }
+
+#runButton {
+  position: absolute;
+  top: 0;
+  left: 30%;
+  margin: 10px;
+  padding: 10px;
+  background-color: #97c551;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+#blocklyWorkspace {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 30%;
+  z-index: 1;
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 30%;
+  height: 100%;
+  width: 70%;
+  z-index: 0;
+}

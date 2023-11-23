@@ -10,7 +10,7 @@ import { D } from "./constants.js";
  */
 export function initRenderer(three) {
   three.renderer = new THREE.WebGLRenderer({ antialias: true });
-  three.renderer.setSize(window.innerWidth, window.innerHeight);
+  three.renderer.setSize(0.7*window.innerWidth, window.innerHeight);
   three.renderer.setPixelRatio(devicePixelRatio); // Sometimes makes aspect ratio weird on mobile
   document.body.appendChild(three.renderer.domElement);
 }
@@ -21,7 +21,7 @@ export function initRenderer(three) {
  * @param three Object storing the THREE.js classes we use.
  */
 export function initCamera(three) {
-  const width = window.innerWidth;
+  const width = 0.7*window.innerWidth;
   const height = window.innerHeight;
   three.camera = new THREE.OrthographicCamera(
     (-D * width) / height,

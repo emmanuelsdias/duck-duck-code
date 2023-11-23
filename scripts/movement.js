@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-import { CUBE_SIZE, Y_AXIS } from "./constants.js";
+import { CUBE_SIZE, Y_AXIS, DIRECTION } from "./constants.js";
 import { canDuckBeHere } from "./map.js";
 import { roundVector3 } from "./utilities.js";
 
@@ -9,7 +9,7 @@ import { roundVector3 } from "./utilities.js";
  *
  * @param duckFamily THREE.js Group containing duck and rescued ducklings.
  */
-function rotateLeft(duckFamily, status) {
+export function rotateLeft(duckFamily, status) {
   const angle = + Math.PI / 2;
   duckFamily.rotation.y += angle;
   roundVector3( status.duckDir.applyAxisAngle( Y_AXIS, angle ) )
@@ -20,7 +20,7 @@ function rotateLeft(duckFamily, status) {
  *
  * @param duckFamily THREE.js Group containing duck and rescued ducklings.
  */
-function rotateRight(duckFamily, status) {
+export function rotateRight(duckFamily, status) {
   const angle = - Math.PI / 2;
   duckFamily.rotation.y += angle;
   roundVector3( status.duckDir.applyAxisAngle( Y_AXIS, angle ) );
@@ -31,7 +31,7 @@ function rotateRight(duckFamily, status) {
  *
  * @param duckFamily THREE.js Group containing duck and rescued ducklings.
  */
-function moveForward(duckFamily, status) {
+export function moveForward(duckFamily, status) {
   status.duckPos.add( status.duckDir );
   if (!canDuckBeHere(status)) {
     status.duckPos.sub(status.duckDir);
@@ -48,7 +48,7 @@ function moveForward(duckFamily, status) {
  *
  * @param duckFamily THREE.js Group containing duck and rescued ducklings.
  */
-function moveBackward(duckFamily, status) {
+export function moveBackward(duckFamily, status) {
   status.duckPos.sub(status.duckDir);
   if (!canDuckBeHere(status)) {
     status.duckPos.add(status.duckDir);
@@ -65,7 +65,7 @@ function moveBackward(duckFamily, status) {
  *
  * @param duckFamily THREE.js Group containing duck and rescued ducklings.
  */
-async function jump(duckFamily) {
+export async function jump(duckFamily) {
   let counter = 1;
   duckFamily.traverse((child) => {
     if (child.name === "Duck" || child.name === "Duckie") {
@@ -85,56 +85,44 @@ async function jump(duckFamily) {
   });
 }
 
-let recentMovement = false;
-
 /**
  * Handles player's movement according to the key pressed on keydown event.
  * To prevent key spam, it waits 200ms before accepting another key.
  *
- * @param e          Keydown event object.
+ * @param move       Movement to be done.
  * @param duckFamily THREE.js Group containing duck and rescued ducklings.
  * @param status     Object containing game's current status.
  */
-export async function onKeydown(e, duckFamily, status) {
-  if (!recentMovement) {
-    const key = e.code;
-    switch (key) {
-      case "ArrowUp":
-      case "KeyW":
-        jump(duckFamily);
-        moveForward(duckFamily, status);
-        status.jumped = true;
-        status.moved = true;
-        break;
-  
-      case "ArrowDown":
-      case "KeyS":
-        jump(duckFamily);
-        moveBackward(duckFamily, status);
-        status.jumped = true;
-        status.moved = true;
-        break;
-  
-      case "ArrowLeft":
-      case "KeyA":
-        rotateLeft(duckFamily, status);
-        break;
-  
-      case "ArrowRight":
-      case "KeyD":
-        rotateRight(duckFamily, status);
-        break;
-  
-      case "Space":
-        jump(duckFamily);
-        status.jumped = true;
-        break;
-  
-      default:
-        return;
-    }
-    recentMovement = true;
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    recentMovement = false;
+export async function runMovement(move, duckFamily, status) {
+  switch (move) {
+    case DIRECTION.Up:
+      jump(duckFamily);
+      moveForward(duckFamily, status);
+      status.jumped = true;
+      status.moved = true;
+      break;
+
+    case DIRECTION.Down:
+      jump(duckFamily);
+      moveBackward(duckFamily, status);
+      status.jumped = true;
+      status.moved = true;
+      break;
+
+    case DIRECTION.Left:
+      rotateLeft(duckFamily, status);
+      break;
+
+    case DIRECTION.Right:
+      rotateRight(duckFamily, status);
+      break;
+
+    case DIRECTION.Jump:
+      jump(duckFamily);
+      status.jumped = true;
+      break;
+
+    default:
+      return;
   }
 }

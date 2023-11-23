@@ -6,7 +6,7 @@ import { D } from "./constants.js";
  * @param three Object storing the THREE.js classes we use.
  */
 export function onWindowResize(three) {
-  const width = window.innerWidth;
+  const width = 0.7*window.innerWidth;
   const height = window.innerHeight;
 
   three.renderer.setSize(width, height);
@@ -38,4 +38,13 @@ export function roundVector3(vector) {
 export function isUpperCase(str) {
   return str === str.toUpperCase() &&
          str !== str.toLowerCase();
+}
+
+/**
+ * Returns true if an array is empty.
+ * 
+ * @param arr Array to check.
+ */
+export function isEmpty(arr) {
+  return arr !== undefined && arr.length === 0;
 }

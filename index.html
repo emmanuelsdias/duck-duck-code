@@ -1,28 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0 user-scalable=no">
-	<title>DuckDuckCode</title>
+  <xml id="toolbox" style="display: none">
+    <category name="Normal" colour="210">
+      <block type="move_forward"></block>
+      <block type="move_backward"></block>
+      <block type="turn_right"></block>
+      <block type="turn_left"></block>
+    </category>
+    <category name="Logic" colour="120">
+			<block type="repeat"></block>
+    </category>
+  </xml>
 
-	<link rel="icon" href="./assets/images/duckDuckCodeIcon.svg">
-	<link rel="stylesheet" href="./styles/style.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 user-scalable=no"/>
+    <title>DuckDuckCode</title>
 
-	<script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
-	<script type="importmap">
-		{
-			"imports": {
-				"three": "https://unpkg.com/three@0.156.1/build/three.module.js",
-				"three/addons/": "https://unpkg.com/three@0.156.1/examples/jsm/"
-			}
-		}
-	</script>
-</head>
+    <link rel="icon" href="./assets/images/duckDuckCodeIcon.svg" />
+    <link rel="stylesheet" href="./styles/style.css" />
+    <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+		<script src="https://unpkg.com/blockly/blockly.min.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.156.1/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.156.1/examples/jsm/",
+          "blockly": "https://unpkg.com/blockly@3.20211007/dist/blockly.mjs"
+        }
+      }
+    </script>
+  </head>
 
-<body>
-	<div id="warning-container"></div>
-	<script type="module" src="./scripts/main.js"></script>
-</body>
-
+  <body>
+    <div id="warning-container"></div>
+    <button id="runButton">Run</button>
+    <div id="blocklyWorkspace"></div>
+    <script type="module" src="./scripts/main.js"></script>
+  </body>
 </html>
