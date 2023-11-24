@@ -49,7 +49,7 @@ const models = {
 
 const status = {
   advance: false,
-  level: 9,
+  level: 1,
   loading: true,
   moved: false,
   jumped: false,
@@ -316,7 +316,6 @@ Blockly.JavaScript["repeat"] = function (block) {
 
 function runCode() {
   var code = Blockly.JavaScript.workspaceToCode(workspace);
-  console.log(code);
   try {
     eval(code); // Execute the generated JavaScript code
   } catch (e) {

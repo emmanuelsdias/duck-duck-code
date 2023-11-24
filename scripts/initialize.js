@@ -12,6 +12,7 @@ export function initRenderer(three) {
   three.renderer = new THREE.WebGLRenderer({ antialias: true });
   three.renderer.setSize(0.7*window.innerWidth, window.innerHeight);
   three.renderer.setPixelRatio(devicePixelRatio); // Sometimes makes aspect ratio weird on mobile
+  three.renderer.shadowMap.enabled = true;
   document.body.appendChild(three.renderer.domElement);
 }
 
@@ -67,9 +68,14 @@ export function initLights(three) {
   const ambientLight = new THREE.AmbientLight(ambientColor, 1.0);
   three.scene.add(ambientLight);
 
-  const directionalLight = new THREE.DirectionalLight(directionalColor, 1.5);
-  directionalLight.position.set(1, 2, 0);
-  three.scene.add(directionalLight);
+  const upperLight = new THREE.DirectionalLight(directionalColor, 1.5);
+  upperLight.position.set(0, 1, 0);
+  upperLight.castShadow = true;
+  three.scene.add(upperLight);
+
+  const sideLight = new THREE.DirectionalLight(directionalColor, 0.5);
+  sideLight.position.set(1, 0, 0);
+  three.scene.add(sideLight);
 }
 
 /**

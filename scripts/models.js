@@ -13,6 +13,10 @@ export function loadModels(models) {
   const loader = new GLTFLoader();
 
   loader.load(duckFile, (gltf) => {
+    gltf.scene.traverse( function( node ) {
+      if ( node.isMesh ) { node.castShadow = true; }
+  } );
+
     models.duck = gltf.scene;
   });
 

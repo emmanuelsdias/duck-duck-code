@@ -23,10 +23,9 @@ function addCube(x, z, cell, cubes) {
       break;
   }
   const cubeGeometry = new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
-  const cubeMaterial = new THREE.MeshLambertMaterial({
-    color: cubeColor,
-  });
+  const cubeMaterial = new THREE.MeshLambertMaterial({ color: cubeColor });
   const cubeTile = new THREE.Mesh(cubeGeometry, cubeMaterial);
+  cubeTile.receiveShadow = true;
   cubeTile.position.set(x * CUBE_SIZE, -0.7, z * CUBE_SIZE);
   cubes.add(cubeTile);
 }
