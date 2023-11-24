@@ -45,11 +45,12 @@ const groups = {
 const models = {
   duck: null,
   duckling: null,
+  waterTexture: null,
 };
 
 const status = {
   advance: false,
-  level: 1,
+  level: 9,
   loading: true,
   moved: false,
   jumped: false,
@@ -106,6 +107,7 @@ function loadNewScene() {
     groups.duckFamily,
     groups.lostDucklings,
     models.duckling,
+    models.waterTexture,
     status
   );
 }

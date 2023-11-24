@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-import { lightBlue, darkBlue, lightGreen, darkGreen } from "./colors.js";
+import { veryLightBlue, lightGreen, darkGreen } from "./colors.js";
 import { D, CUBE_SIZE } from "./constants.js";
 import { isUpperCase } from "./utilities.js";
 
@@ -11,20 +11,21 @@ import { isUpperCase } from "./utilities.js";
  * @param z     New cube's z index position.
  * @param cubes THREE.js Group containing cubes on the scene.
  */
-function addCube(x, z, cell, cubes) {
+function addCube(x, z, cell, cubes, waterTexture) {
   let cubeColor;
+  let cubeMaterial;
+  
   switch(cell) {
     case 'b':
     case 'B':
-      cubeColor = (x + z) % 2 == 0 ? lightBlue : darkBlue;
+      cubeMaterial = new THREE.MeshLambertMaterial({ color: veryLightBlue, map: waterTexture });
       break;
     default:
       cubeColor = (x + z) % 2 == 0 ? lightGreen : darkGreen;
+      cubeMaterial = new THREE.MeshLambertMaterial({ color: cubeColor });
       break;
   }
-  const cubeGeometry = new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
-  const cubeMaterial = new THREE.MeshLambertMaterial({ color: cubeColor });
-  const cubeTile = new THREE.Mesh(cubeGeometry, cubeMaterial);
+  const cubeTile = new THREE.Mesh(new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE), cubeMaterial);
   cubeTile.receiveShadow = true;
   cubeTile.position.set(x * CUBE_SIZE, -0.7, z * CUBE_SIZE);
   cubes.add(cubeTile);
@@ -77,6 +78,7 @@ export function loadNextPuzzle(
   duckFamily,
   lostDucklings,
   duckling,
+  waterTexture,
   status
 ) {
   const rows = puzzle.split("\n");
@@ -91,7 +93,7 @@ export function loadNextPuzzle(
       status.map[z].push(cell);
       // Add floor cubes 
       if (cell !== ".") {
-        addCube(x, z, cell, cubes);
+        addCube(x, z, cell, cubes, waterTexture);
       }
       // Position duck starting position and record it in status
       if (cell === "d") {

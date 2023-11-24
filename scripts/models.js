@@ -1,3 +1,4 @@
+import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 const duckFile = "./assets/models/gltf/duck.gltf";
@@ -23,4 +24,6 @@ export function loadModels(models) {
   loader.load(ducklingFile, (gltf) => {
     models.duckling = gltf.scene;
   });
+
+  models.waterTexture = new THREE.TextureLoader().load('./assets/images/water.jpg');
 }
