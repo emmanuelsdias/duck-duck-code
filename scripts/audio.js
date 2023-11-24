@@ -1,13 +1,7 @@
 import * as THREE from "three";
 
 const jumpSoundFiles = [
-  "./assets/sounds/jump_sound_1.wav",
-  "./assets/sounds/jump_sound_2.wav",
-  "./assets/sounds/jump_sound_3.wav",
-  "./assets/sounds/jump_sound_4.wav",
-  "./assets/sounds/jump_sound_5.wav",
-  "./assets/sounds/jump_sound_6.wav",
-  "./assets/sounds/jump_sound_7.wav",
+  "./assets/sounds/computer-boop_fordps3.wav",
 ];
 
 /**
