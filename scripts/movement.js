@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
-import { CUBE_SIZE, Y_AXIS, DIRECTION } from "./constants.js";
-import { canDuckBeHere } from "./map.js";
+import { CUBE_SIZE, Y_AXIS, DIRECTION, TERRAIN } from "./constants.js";
+import { canDuckBeHere, isDuckOnWater } from "./map.js";
 import { roundVector3 } from "./utilities.js";
 
 /**
@@ -10,9 +10,9 @@ import { roundVector3 } from "./utilities.js";
  * @param duckFamily THREE.js Group containing duck and rescued ducklings.
  */
 export function rotateLeft(duckFamily, status) {
-  const angle = + Math.PI / 2;
+  const angle = +Math.PI / 2;
   duckFamily.rotation.y += angle;
-  roundVector3( status.duckDir.applyAxisAngle( Y_AXIS, angle ) )
+  roundVector3(status.duckDir.applyAxisAngle(Y_AXIS, angle));
 }
 
 /**
@@ -21,9 +21,9 @@ export function rotateLeft(duckFamily, status) {
  * @param duckFamily THREE.js Group containing duck and rescued ducklings.
  */
 export function rotateRight(duckFamily, status) {
-  const angle = - Math.PI / 2;
+  const angle = -Math.PI / 2;
   duckFamily.rotation.y += angle;
-  roundVector3( status.duckDir.applyAxisAngle( Y_AXIS, angle ) );
+  roundVector3(status.duckDir.applyAxisAngle(Y_AXIS, angle));
 }
 
 /**
@@ -32,11 +32,11 @@ export function rotateRight(duckFamily, status) {
  * @param duckFamily THREE.js Group containing duck and rescued ducklings.
  */
 export function moveForward(duckFamily, status) {
-  status.duckPos.add( status.duckDir );
+  status.duckPos.add(status.duckDir);
   if (!canDuckBeHere(status)) {
     status.duckPos.sub(status.duckDir);
-    return; 
-  };
+    return;
+  }
   const direction = new THREE.Vector3();
   direction.copy(status.duckDir);
   direction.multiplyScalar(CUBE_SIZE);
@@ -52,8 +52,8 @@ export function moveBackward(duckFamily, status) {
   status.duckPos.sub(status.duckDir);
   if (!canDuckBeHere(status)) {
     status.duckPos.add(status.duckDir);
-    return; 
-  };
+    return;
+  }
   const direction = new THREE.Vector3();
   direction.copy(status.duckDir);
   direction.multiplyScalar(-CUBE_SIZE);
@@ -93,7 +93,10 @@ export async function jump(duckFamily) {
  * @param duckFamily THREE.js Group containing duck and rescued ducklings.
  * @param status     Object containing game's current status.
  */
-export async function runMovement(move, duckFamily, status) {
+export async function runMovement(move, typeOfMovement, duckFamily, status) {
+  if (isDuckOnWater(status) && typeOfMovement !== TERRAIN.Water) return;
+  else if (!isDuckOnWater(status) && typeOfMovement === TERRAIN.Water) return;
+
   switch (move) {
     case DIRECTION.Up:
       jump(duckFamily);
