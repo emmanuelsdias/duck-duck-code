@@ -154,12 +154,12 @@ export function initBlockly() {
     return "moves.push(DIRECTION.Left); types.push(TERRAIN.Water);";
   };
 
-  var loopCounter = 0;
+  let loopCounter = 0;
 
   Blockly.JavaScript["repeat"] = function (block) {
-    var count = block.getFieldValue("COUNT");
-    var idx = "i_" + loopCounter++;
-    var code =
+    let count = block.getFieldValue("COUNT");
+    let idx = "i_" + loopCounter++;
+    let code =
       "for (let " +
       idx +
       " = 0; " +
@@ -184,7 +184,7 @@ export function initBlockly() {
  * @param types     Array of terrain types to execute
  */
 export function runCode(workspace, moves, types) {
-  var code = Blockly.JavaScript.workspaceToCode(workspace);
+  let code = Blockly.JavaScript.workspaceToCode(workspace);
   try {
     eval(code);
   } catch (e) {
