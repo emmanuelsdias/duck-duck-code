@@ -2,6 +2,7 @@ import * as THREE from "three";
 import WebGL from "three/addons/capabilities/WebGL.js";
 
 import { loadAudio, playJumpSound } from "./audio.js";
+import { initBlockly, runCode } from "./blockly.js";
 import { checkRescues } from "./gameplay.js";
 import {
   initRenderer,
@@ -17,49 +18,42 @@ import { runMovement } from "./movement.js";
 import { puzzles } from "./puzzles.js";
 import { isEmpty, onWindowResize } from "./utilities.js";
 
-import {
-  jump,
-  moveForward,
-  moveBackward,
-  rotateLeft,
-  rotateRight,
-} from "./movement.js";
-import { DIRECTION, TERRAIN } from "./constants.js";
-
-//--- GLOBAL VARIABLES ---//
+//--- GLOBAL OBJECTS ---//
 
 const three = {
-  camera: null,
-  scene: null,
-  renderer: null,
-  audioLoader: null,
-  listener: null,
+  camera      : null,
+  scene       : null,
+  renderer    : null,
+  audioLoader : null,
+  listener    : null,
 };
 
 const groups = {
-  cubes: null,
-  duckFamily: null,
-  lostDucklings: null,
+  cubes         : null,
+  duckFamily    : null,
+  lostDucklings : null,
 };
 
 const models = {
-  duck: null,
-  duckling: null,
-  waterTexture: null,
+  duck         : null,
+  duckling     : null,
+  waterTexture : null,
 };
 
 const status = {
-  advance: false,
-  level: 9,
-  loading: true,
-  moved: false,
-  jumped: false,
-  map: [],
-  duckPos: new THREE.Vector2(0, 0),
-  duckDir: new THREE.Vector3(1, 0, 0),
+  advance : false,
+  level   : 1,
+  loading : true,
+  moved   : false,
+  jumped  : false,
+  map     : [],
+  duckPos : new THREE.Vector2(0, 0),
+  duckDir : new THREE.Vector3(1, 0, 0),
 };
 
 const jumpSounds = [];
+
+let workspace;
 
 //--- INITIALIZATION ---//
 
@@ -71,6 +65,7 @@ function init() {
   initLights(three);
   initGroups(groups, three);
   onWindowResize(three);
+  workspace = initBlockly();
 }
 
 function load() {
@@ -93,6 +88,25 @@ window.addEventListener(
   },
   false
 );
+
+document.querySelector("#runButton").addEventListener(
+  "click", () => {
+    runCode(workspace, moves, types);
+  },
+  false
+);
+
+let moves = [];
+let types = [];
+
+// TODO: Use Blockly's interpreter instead of the above
+
+// Not really a listener, but it reads from arrays above
+// every 500ms to run any command that has been pushed
+setInterval(() => {
+  if (!isEmpty(moves))
+    runMovement(moves.shift(), types.shift(), groups.duckFamily, status);
+}, 500);
 
 //--- MAIN LOOP ---//
 
@@ -163,178 +177,3 @@ if (WebGL.isWebGLAvailable()) {
   const warning = WebGL.getWebGLErrorMessage();
   document.getElementById("warning-container").appendChild(warning);
 }
-
-const workspace = Blockly.inject("blocklyWorkspace", {
-  media: "https://unpkg.com/blockly/media/",
-  toolbox: document.getElementById("toolbox"), // You can customize the toolbox if needed
-});
-
-Blockly.Blocks["move_forward"] = {
-  init: function () {
-    this.appendDummyInput().appendField("Move Forward");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour(120);
-    this.setTooltip("Move the duck forward");
-    this.setHelpUrl("");
-  },
-};
-
-Blockly.Blocks["move_backward"] = {
-  init: function () {
-    this.appendDummyInput().appendField("Move Backward");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour(120);
-    this.setTooltip("Move the duck backward");
-    this.setHelpUrl("");
-  },
-};
-
-Blockly.Blocks["turn_right"] = {
-  init: function () {
-    this.appendDummyInput().appendField("Turn Right");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour(120);
-    this.setTooltip("Turn the duck to the right");
-    this.setHelpUrl("");
-  },
-};
-
-Blockly.Blocks["turn_left"] = {
-  init: function () {
-    this.appendDummyInput().appendField("Turn Left");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour(120);
-    this.setTooltip("Turn the duck to the left");
-    this.setHelpUrl("");
-  },
-};
-
-Blockly.Blocks["move_forward_B"] = {
-  init: function () {
-    this.appendDummyInput().appendField("Move Forward Water");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour(230);
-    this.setTooltip("Move the duck forward");
-    this.setHelpUrl("");
-  },
-};
-
-Blockly.Blocks["move_backward_B"] = {
-  init: function () {
-    this.appendDummyInput().appendField("Move Backward Water");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour(230);
-    this.setTooltip("Move the duck backward");
-    this.setHelpUrl("");
-  },
-};
-
-Blockly.Blocks["turn_right_B"] = {
-  init: function () {
-    this.appendDummyInput().appendField("Turn Right Water");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour(230);
-    this.setTooltip("Turn the duck to the right");
-    this.setHelpUrl("");
-  },
-};
-
-Blockly.Blocks["turn_left_B"] = {
-  init: function () {
-    this.appendDummyInput().appendField("Turn Left Water");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour(230);
-    this.setTooltip("Turn the duck to the left");
-    this.setHelpUrl("");
-  },
-};
-
-Blockly.Blocks["repeat"] = {
-  init: function () {
-    this.appendDummyInput()
-      .appendField("for")
-      .appendField("count")
-      .appendField(new Blockly.FieldNumber(0, 1), "COUNT")
-      .appendField("times");
-    this.appendStatementInput("DO").appendField("do");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour(350);
-    this.setTooltip("For loop with an editable number");
-    this.setHelpUrl("");
-  },
-};
-
-Blockly.JavaScript["move_forward"] = function (block) {
-  return "moves.push(DIRECTION.Up);types.push(TERRAIN.Land);";
-};
-
-Blockly.JavaScript["move_backward"] = function (block) {
-  return "moves.push(DIRECTION.Down);types.push(TERRAIN.Land);";
-};
-
-Blockly.JavaScript["turn_right"] = function (block) {
-  return "moves.push(DIRECTION.Right);types.push(TERRAIN.Land);";
-};
-
-Blockly.JavaScript["turn_left"] = function (block) {
-  return "moves.push(DIRECTION.Left);types.push(TERRAIN.Land);";
-};
-
-Blockly.JavaScript["move_forward_B"] = function (block) {
-  return "moves.push(DIRECTION.Up);types.push(TERRAIN.Water);";
-};
-
-Blockly.JavaScript["move_backward_B"] = function (block) {
-  return "moves.push(DIRECTION.Down);types.push(TERRAIN.Water);";
-};
-
-Blockly.JavaScript["turn_right_B"] = function (block) {
-  return "moves.push(DIRECTION.Right);types.push(TERRAIN.Water);";
-};
-
-Blockly.JavaScript["turn_left_B"] = function (block) {
-  return "moves.push(DIRECTION.Left);types.push(TERRAIN.Water);";
-};
-
-Blockly.JavaScript["repeat"] = function (block) {
-  var count = block.getFieldValue("COUNT") || "0";
-  var code =
-    "for (var i = 0; i < " +
-    count +
-    "; i++) {\n" +
-    Blockly.JavaScript.statementToCode(block, "DO") +
-    "}\n";
-  return code;
-};
-
-function runCode() {
-  var code = Blockly.JavaScript.workspaceToCode(workspace);
-  try {
-    eval(code); // Execute the generated JavaScript code
-  } catch (e) {
-    console.error("Error executing generated code:", e);
-  }
-}
-
-document
-  .querySelector("#runButton")
-  .addEventListener("click", function (event) {
-    runCode();
-  });
-
-let moves = [];
-let types = [];
-
-setInterval(() => {
-  if (!isEmpty(moves))
-    runMovement(moves.shift(), types.shift(), groups.duckFamily, status);
-}, 500);
