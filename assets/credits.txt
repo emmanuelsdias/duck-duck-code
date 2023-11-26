@@ -1,0 +1,5 @@
+- Water texture (assets/images/water.jpg) created by Berserkitty and available on DeviantArt:
+https://www.deviantart.com/berserkitty/art/Seamless-Cartoon-styled-Water-Texture-743787929
+
+- Jump sound effect (assets/sounds/computer-boop_fordps3.wav) created by fordps3 and available on Freesound:
+https://freesound.org/people/fordps3/sounds/186669/
